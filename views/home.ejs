@@ -45,54 +45,19 @@
                                      <%})%>
                                  </div>
                                 <form class="pure-form" id="comment-form" method="POST" action="/comment">
-                                    <div class="comment-form">
-                                        <input type="string" name="comment" placeholder="enter comment" id="new_comment_text">
-                                        <button type="submit" class="button-secondary pure-button" id="<%=image._id%>">Send Comment</button>
+                                    <div class="comment-form" id="div<%=image._id%>">
+                                        <input type="string" name="comment" placeholder="enter comment" id="comment<%=image._id%>">
+                                        <button type="submit" class="button-secondary pure-button" id="<%=image._id%>" onclick="addNewComment(this)">Send Comment</button>
                                     </div>
                                 </form>
-                                <div class="comments-list" id="comments-list">
-                                    <script id="comment-template" type="text/x-template">
-                                        <div class="comment-info">
-                                            <div class="row">
-                                                <div class="text" id="<%=image._id%>">{{comment}}</div>
-                                            </div>
-                                        </div>
-                                    </script>
-                                </div>
                             <div>
 
                             </div>
                         </div>
                             <% }) %>
-                            <!--<form class="pure-form" id="comment-form" action="/comment" method="POST">
-                                <div class="comment-form">
-                                    <input type="string" name="comment" placeholder="enter comment" id="new_comment_text">
-                                    <button type="submit" class="button-secondary pure-button">Send Comment</button>
-                                </div>
-                            </form>-->
+                            
                     </div>
             </div>
-            <!--<% items.forEach(function(image) { %>
-                <div>
-                    <div>
-                        <img src="data:image/<%=image.img.contentType%>;base64,
-                             <%=image.img.data.toString('base64')%>">
-                        <div>
-                            <h5><%= image.title %></h5>
-                        </div>
-                        </div>
-                        <% }) %>
-                    </div>-->
-                    <!--<div class="comments-list" id="comments-list">
-                        <script id="comment-template" type="text/x-template">
-                            <div class="comment-info">
-                                <div class="row">
-                                    <div class="text">{{comment}}</div>
-                                </div>
-                            </div>
-                        </script>
-                </div>--> 
-
                     <script type="text/javascript" src="https://js.pusher.com/3.2/pusher.min.js"></script>
                     <script>
                     (function(){
@@ -104,49 +69,32 @@
                               cluster: 'ap2',
                               encrypted: true
                             }),
-                            // Subscribing to the 'flash-comments' Channel
-                            channel = pusher.subscribe('Postify'),
-                            commentForm = document.getElementById('comment-form'),
-                            commentsList = document.getElementById('comments-list'),
-                            commentTemplate = document.getElementById('comment-template');
-                    
-                        // Binding to Pusher Event on our 'flash-comments' Channel
-                        channel.bind('new_comment',newCommentReceived);
-                    
-                        // Adding to Comment Form Submit Event
-                        commentForm.addEventListener("submit", addNewComment);
-                    
-                        // New Comment Receive Event Handler
-                        // We will take the Comment Template, replace placeholders & append to commentsList
-                        function newCommentReceived(data){
-                            //console.log(data);
-                            console.log(data.comment+"hehe");
-                          var newCommentHtml = commentTemplate.innerHTML.replace('{{comment}}',data.comment);
-                          //newCommentHtml.replace('{{comment}}',data.comment);
-                          var newCommentNode = document.createElement('div');
-                          newCommentNode.classList.add('comment');
-                          newCommentNode.innerHTML = newCommentHtml;
-                          commentsList.appendChild(newCommentNode);
+                            channel = pusher.subscribe('Postify');
+                            channel.bind('new_comment',newCommentReceived);
+                        })();
+                        function newCommentReceived(data,id){
+                          console.log(id);
+                          console.log(data);
+                          let str2="div"+id;
+                          var para = document.createElement("div");
+                          var node = document.createTextNode(data.comment);
+                          para.appendChild(node);
+                          var element = document.getElementById(str2);
+                          element.appendChild(para);
                         }
                     
-                        function addNewComment(event){
-                            console.log( document.getElementById('new_comment_text'));
+                        function addNewComment(thiss){
+                            let str1="comment"+thiss.id;
+                            //console.log(str);
+                            //commentForm = document.getElementById('comment-form'),
+                            console.log( document.getElementById(thiss.id));
                           event.preventDefault();
                           var newComment = {
-                            "comment": document.getElementById('new_comment_text').value
+                            "comment": document.getElementById(str1).value
                           }
                           console.log(JSON.stringify(newComment));
-                          var xhr = new XMLHttpRequest();
-                          xhr.open("POST", serverUrl+"comment", true);
-                          xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-                          xhr.onreadystatechange = function () {
-                              if (xhr.readyState != 4 || xhr.status != 200) return;
-                              console.log("Success: " + xhr.responseText);
-                              commentForm.reset();
-                            };
-                            xhr.send(JSON.stringify(newComment));
+                            newCommentReceived(newComment,thiss.id);
                         }
-                    })();
                     </script>
                 </body>
                 </html>

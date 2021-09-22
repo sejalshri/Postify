@@ -12,9 +12,9 @@
 <body>
     <nav>
         <ul>
-            <li>Login</li>
-            <li>Register</li>
-            <li>MyProfile</li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
         </ul>
     </nav>
     <div id="main">
@@ -37,5 +37,10 @@
             <i class="fa fa-linkedin" aria-hidden="true"></i>
         </div>
     </footer>
+    <script>
+        if ('<%-message%>'!=""){
+        alert('<%- message %>');
+        }
+    </script>
 </body>
 </html>

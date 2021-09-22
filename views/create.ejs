@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+        <link rel="stylesheet" href="css/home.css">
+        <script src="https://use.fontawesome.com/fbf48fd1fe.js"></script>
+        <title>Postify</title>
+    </head>
+    <body>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/create">MyProfile</a></li>
+                <li><a href="/logout">Logout</a></li>
+            </ul>
+        </nav>
+        <div>
+        <form method="POST" action="/create" enctype="multipart/form-data">
+            <input type="text" placeholder="Title" name="title"><br/>
+            <textarea name="description">
+            </textarea><br/>
+            <input type="file" name="image">
+            <input type="submit">
+        </form>
+        </div>
+        <div class="container" style="color: white;">
+            <% items.forEach(function(image) { %>
+                <div>
+                    <div class="post">
+                        <div>
+                            <h2><%= image.username %></h2>
+                        </div>
+                        <div>
+                            <small><%= image.date %></small>
+                        </div>
+                        <div>
+                            <h4><%= image.title %></h4>
+                        </div>
+                        <div>
+                            <p><%= image.description %></p>
+                        </div>
+                        <img src="data:image/<%=image.img.contentType%>;base64,
+                             <%=image.img.data.toString('base64')%>" style="width: 400px; height:200px;">
+                    </div>
+                        <% }) %>
+                </div>
+        </div>
+        <script>
+            if ('<%-message%>'!=""){
+            alert('<%- message %>');
+            }
+        </script>
+    </body>
+    </html>

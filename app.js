@@ -3,11 +3,9 @@ const express = require("express");
 const ejs = require("ejs");
 const path =  require("path");
 const fs = require("fs");
-//const https = require("https");
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 const _ = require('lodash');
-//const encrypt = require('mongoose-encryption');
 const multer = require('multer');
 const session = require('express-session');
 const passport = require('passport');
@@ -15,7 +13,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const passportLocalMongoose = require("passport-local-mongoose");
 const bcrypt=require("bcrypt");
 const DB_PWD = process.env.DB_PWD;
-const Pusher = require('pusher');
+const GoogleStrategy = require("passport-google-oauth20").Strategy;
+
 
 const app = express();
 app.use(bodyParser.urlencoded({
@@ -28,15 +27,6 @@ app.set("view engine", "ejs");
 
 app.use(express.static("public/"));
 app.use(express.urlencoded({ extended: true }));
-
-
-var pusher = new Pusher({
-    appId: process.env.PUSHER_APPID,
-    key: process.env.PUSHER_KEY,
-    secret: process.env.PUSHER_SECRET,
-    cluster: 'ap2',
-    encrypted: true
-  });
 
 app.use(session({
   secret: process.env.SECRET,
@@ -52,20 +42,63 @@ mongoose.connect("mongodb+srv://Sejalshri:"+process.env.DB_PWD+"@cluster0.vko73.
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
-//mongoose.set("useCreateIndex", true);
-//mongoose.set("useFindAndModify", false);
 
 const userSchema=new mongoose.Schema({
     username: String,
     email: String,
-    password: String
+    password: String,
+    googleId:String
+
 });
-//userSchema.plugin(encrypt,{secret: process.env.SECRET,encryptedFields:["password"]});
 userSchema.plugin(passportLocalMongoose);
 const User = mongoose.model("User", userSchema);
 passport.use(User.createStrategy());
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
+  passport.serializeUser(function(user, done) {
+    done(null, user);
+  });
+  
+  passport.deserializeUser(function(user, done) {
+    done(null, user);
+  });
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: "http://localhost:8000/auth/google/posts",
+    userProfileURL:"https://www.googleapis.com/oauth2/v3/userinfo"
+  },
+  function(accessToken, refreshToken, profile, cb) {
+    User.findOne({
+        googleId: profile.id
+    },function(err,found){
+        if(err){
+            console.log(err);
+        }
+        if(!found){
+            const user=new User({
+                username:profile.displayName,
+                googleId:profile.id
+            })
+            user.save(function(err){
+                if(err){
+                    console.log(err);
+                }
+                else{
+                    console.log("Successfull");
+                }
+            })
+            active=profile.displayName;
+            console.log(active);
+            return cb(err,user);
+        }
+        else{
+            active=profile.displayName;
+            console.log(active);
+            return cb(err,found);
+        }
+    })
+  }
+));
 
 const postSchema=new mongoose.Schema({
     username:String,
@@ -122,13 +155,6 @@ app.post('/create', upload.single('image'), (req, res) => {
             res.redirect("/create");
         }
     });
-    /**Posts.find({},function(err,foundposts){
-        if(err){
-            console.log(err);
-        }
-        res.render("result",{items:foundposts});
-    })**/
-
 })
 var foundposts1="";
 app.get("/",function(req,res){
@@ -146,52 +172,24 @@ app.get("/",function(req,res){
     });
 
 /*LOGIN-REGISTER*/
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ["profile"] })
+);
+
+app.get('/auth/google/posts', 
+  passport.authenticate('google', { failureRedirect: "/login" }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+  });
+
+
 app.get("/register",function(req,res){
     res.render("register",{message:""});
 })
 app.get("/login",function(req,res){
 	res.render("login",{message:""});
 })
-
-/**app.post("/login",function(req,res){
-    User.findOne({email:req.body.email},function(err,foundUser){
-        console.log(foundUser);
-        if(!foundUser){
-            res.render("register",{message:"No Account Associated! Register first."});
-        }
-        else{
-            res.render("home",{items:foundposts1});
-        }
-    })
-})
-
-app.post("/register",function(req,res){
-    User.findOne({email:req.body.email},function(err,founduser){
-        if(err){
-            console.log(err);
-        }
-        if(!founduser){
-            const newUser=new User({
-                username:req.body.username,
-                email:req.body.email,
-                password:req.body.password
-            });
-        
-            newUser.save(function(err){
-                if(err){
-                    console.log(err);
-                }
-                else{
-                    console.log("successful");
-                }
-            });
-            res.render("home");
-        }
-        else{
-            res.render("login",{message:"Existing User! Try to login"});
-        }
-    })
-});**/
 var active="";
 app.post("/register",function(req,res){
     User.register({username:req.body.username},req.body.password,function(err,user){
@@ -230,16 +228,6 @@ app.get("/logout",function(req,res){
     req.logout();
     res.redirect("/");
 })
-app.post("/comment", function(req, res){
-    console.log(req.body.comment);
-    console.log("hello");
-    var newComment = {
-      comment: req.body.comment
-    }
-    pusher.trigger('Postify', 'new_comment', newComment);
-    res.json({ created: true });
-  });
-/*Login-register END*/
-app.listen(process.env.PORT || 3000, function (req, res) {
-    console.log("Server started at port 3000");
+app.listen(process.env.PORT || 8000, function (req, res) {
+    console.log("Server started at port 8000");
   });

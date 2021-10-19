@@ -4,25 +4,37 @@
     box-sizing: border-box;
 }
 body{
-    display: flex;
     background: #161623;
     text-align: center;
     margin: auto;
 }
-nav{
-    position: absolute;
-    right: 0px;
-    top: 10px;
+nav
+{
+    margin-bottom: 30px;
 }
-ul{
-    display: flex;
-    list-style: none;
-    color: rgb(212, 200, 218);
-    font-size: 25px;
+.name{
+    color:rgb(168, 168, 42) ;
     font-weight: bold;
 }
-li{
-    padding: 10px;
+@media only screen and (max-width: 768px) {
+.Toggle{
+    color: #ffffff;
+}
+.post{
+    border-radius: 10px;
+    padding: 20px;
+}
+}
+.navitem{
+    margin: 0 20px;
+    font-size: 25px;
+}
+.nav-link{
+    color: #ffffff;
+}
+
+.nav-link:hover{
+    color:rgb(168, 168, 42) ;
 }
 .container{
     margin-top:5%;
@@ -38,4 +50,25 @@ li{
     background: rgba(255, 255, 255, 0.1);
     overflow: hidden;
     backdrop-filter: blur(5px);
+}
+.image_post{
+    width: 400px; 
+    height:200px;
+}
+@media only screen and (max-width: 768px) {
+    .post{
+        width: 90%;
+        padding: 10px;
+    }
+    .image_post{
+        width: 300px; 
+        height:200px;
+    }
+}
+.createform input{
+    padding: 5px;
+    border-radius: 5px;;
+}
+.createform textarea{
+    border-radius: 5px;
 }
